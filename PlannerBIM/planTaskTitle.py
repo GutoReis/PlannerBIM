@@ -203,7 +203,7 @@ class ViewProviderTaskTitle:
         #schedule node
         self.boxSchedule = coin.SoCube()
         self.boxSchedule.height = 0.5
-        self.boxSchedule.depth = 1.0
+        self.boxSchedule.depth = 0.0
         self.cone1Schedule = coin.SoCone()
         self.cone1Schedule.bottomRadius = 0.5
         self.cone1Schedule.height = 0.5
@@ -255,7 +255,7 @@ class ViewProviderTaskTitle:
         #actual node
         self.boxActual = coin.SoCube()
         self.boxActual.height = 0.5
-        self.boxActual.depth = 1.0
+        self.boxActual.depth = 0.0
         self.cone1Actual = coin.SoCone()
         self.cone1Actual.bottomRadius = 0.5
         self.cone1Actual.height = -0.5
