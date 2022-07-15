@@ -132,7 +132,7 @@ class Process:
         obj.VisibilityActual = False
         obj.UnlockedBaseline = True
         obj.ShowCriticalPath = False
-        obj.Dim3rd = 0
+        obj.Dim3rd = 1
         obj.Dim2nd = 1
 
     def onDocumentRestored(self, obj):
