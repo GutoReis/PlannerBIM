@@ -26,7 +26,8 @@
 import FreeCAD
 import FreeCADGui
 from utils import path
-import planTask, planSchedule, planTaskTitle, planCriticalPath, planSimulation #, planImportSchedule
+import planTask, planSchedule, planTaskTitle, \
+       planCriticalPath, planSimulation, planImportFile
 
 
 class CmdCreateSchedule:
@@ -95,14 +96,14 @@ class CmdCreateAnimation:
 class CmdImportSchedule:
     def GetResources(self):
         return {'Pixmap'  : path()+"/icons/import_xlm.svg", 
-                'MenuText': "Import schedule from xlm",
-                'ToolTip': "Import schedule from xlm"}
+                'MenuText': "Import schedule from xml",
+                'ToolTip': "Import schedule from xml"}
 
     def IsActive(self):
         return True
 
     def Activated(self):
-        pass
+        planImportFile.import_xml_file()
 
 
 if FreeCAD.GuiUp:
