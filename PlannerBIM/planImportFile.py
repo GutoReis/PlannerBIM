@@ -29,11 +29,67 @@ from PySide import QtGui, QtCore
 from PySide.QtGui import *
 from PySide.QtCore import *
 
+from planSchedule import PlanSchedule, ViewProviderSchedule
+from planTask import planTask, ViewProviderTask
+from planTaskTitle import PlanTaskTitle, ViewProviderTaskTitle
+
 
 def import_xml_file() -> None:
     """To import a XML File from ProjectLibre to autogenerate the objects."""
+    if not FreeCAD.ActiveDocument:
+        return FreeCAD.Console.PrintError("No active document.")
+
     path = FreeCAD.ConfigGet("UserAppData")
     file_name = ""
     file_name, _ = PySide.QtGui.QFileDialog. \
         getOpenFileName(None,"Import XML File",path,"XML Files (*.xml)")
     print(file_name)
+    print("Creating Schedule")
+    
+    schedule_obj = create_schedule()
+    title_obj = create_task_title()
+    task_1 = create_task()
+    task_2 = create_task()
+    
+    title_obj.adjustRelativeLinks(schedule_obj)
+    schedule_obj.addObject(title_obj)
+    task_1.adjustRelativeLinks(title_obj)
+    title_obj.addObject(task_1)
+    task_2.adjustRelativeLinks(title_obj)
+    title_obj.addObject(task_2)
+    
+    FreeCAD.ActiveDocument.recompute()
+    print("Schedule Created")
+
+
+def create_schedule():
+    obj = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Schedule")
+    PlanSchedule(obj)
+
+    if FreeCAD.GuiUp:
+        ViewProviderSchedule(obj.ViewObject)
+    
+    FreeCAD.ActiveDocument.recompute()
+    return obj
+
+
+def create_task_title():
+    obj = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "task-title")
+    PlanTaskTitle(obj)
+
+    if FreeCAD.GuiUp:
+        ViewProviderTaskTitle(obj.ViewObject)
+    
+    FreeCAD.ActiveDocument.recompute()
+    return obj
+
+
+def create_task():
+    obj = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Task")
+    planTask(obj)
+
+    if FreeCAD.GuiUp:
+        ViewProviderTask(obj.ViewObject)
+    
+    FreeCAD.ActiveDocument.recompute()
+    return obj
