@@ -44,22 +44,31 @@ def import_xml_file() -> None:
     file_name, _ = PySide.QtGui.QFileDialog. \
         getOpenFileName(None,"Import XML File",path,"XML Files (*.xml)")
     print(file_name)
-    print("Creating Schedule")
+    print("Creating Objects")
     
     schedule_obj = create_schedule()
     title_obj = create_task_title()
     task_1 = create_task()
     task_2 = create_task()
+    print("Schedule Created")
     
+    print("Relating Objects")
     title_obj.adjustRelativeLinks(schedule_obj)
     schedule_obj.addObject(title_obj)
     task_1.adjustRelativeLinks(title_obj)
     title_obj.addObject(task_1)
     task_2.adjustRelativeLinks(title_obj)
     title_obj.addObject(task_2)
-    
     FreeCAD.ActiveDocument.recompute()
-    print("Schedule Created")
+    print("Objects related")
+
+    print("Customizing Data for objects")
+    task_1.ScheduleFinish = "2022-07-22T00:00:00"
+    task_2.ScheduleStart = "2022-07-23T00:00:00"
+    task_2.ScheduleFinish = "2022-07-25T00:00:00"
+    FreeCAD.ActiveDocument.recompute()
+    print("Objects Ready")
+    
 
 
 def create_schedule():
