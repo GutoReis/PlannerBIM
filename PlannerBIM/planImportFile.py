@@ -29,6 +29,7 @@ from PySide import QtGui, QtCore
 from PySide.QtGui import *
 from PySide.QtCore import *
 
+from planEdge import makeEdge
 from planSchedule import PlanSchedule, ViewProviderSchedule
 from planTask import planTask, ViewProviderTask
 from planTaskTitle import PlanTaskTitle, ViewProviderTaskTitle
@@ -63,9 +64,11 @@ def import_xml_file() -> None:
     print("Objects related")
 
     print("Customizing Data for objects")
-    task_1.ScheduleFinish = "2022-07-22T00:00:00"
-    task_2.ScheduleStart = "2022-07-23T00:00:00"
-    task_2.ScheduleFinish = "2022-07-25T00:00:00"
+    task_1.ScheduleStart = "2022-07-22T00:00:00"
+    task_1.ScheduleFinish = "2022-07-25T00:00:00"
+    task_2.ScheduleStart = "2022-07-28T00:00:00"
+    task_2.ScheduleFinish = "2022-08-01T00:00:00"
+    create_relation(task_1, task_2)
     FreeCAD.ActiveDocument.recompute()
     print("Objects Ready")
     
@@ -102,3 +105,27 @@ def create_task():
     
     FreeCAD.ActiveDocument.recompute()
     return obj
+
+
+def create_relation(predecessor_obj, successor_obj):
+    item = predecessor_obj.Identification
+    descr = predecessor_obj.LongDescription
+    param_edge = []
+    lag = "Task Relation"
+    seq = "FINISH_START"
+    dur = "WORKTIME"
+
+    edge = makeEdge(predecObj=predecessor_obj,
+                    sucessObj=successor_obj,
+                    txtLagValue=lag,
+                    txtDurationType=dur,
+                    txtSequenceType=seq)
+    param_edge.extend([edge.Name, item, descr, lag, seq, dur])
+
+    # append edge in properties in predecessor and successor
+    list_suc = successor_obj.IsSuccessorFrom
+    list_pred = predecessor_obj.IsPredecessorTo
+    list_suc.append(edge.Name)
+    list_pred.append(edge.Name)
+    successor_obj.IsSuccessorFrom = list_suc
+    predecessor_obj.IsPredecessorTo = list_pred
