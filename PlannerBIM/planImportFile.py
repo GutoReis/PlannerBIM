@@ -37,8 +37,9 @@ from planTaskTitle import PlanTaskTitle, ViewProviderTaskTitle
 
 def import_xml_file() -> None:
     """To import a XML File from ProjectLibre to autogenerate the objects."""
-    if not FreeCAD.ActiveDocument:
-        return FreeCAD.Console.PrintError("No active document.")
+    FreeCAD.newDocument("schedule")
+    # if not FreeCAD.ActiveDocument:
+    #     return FreeCAD.Console.PrintError("No active document.")
 
     path = FreeCAD.ConfigGet("UserAppData")
     file_name = ""
@@ -64,11 +65,11 @@ def import_xml_file() -> None:
     print("Objects related")
 
     print("Customizing Data for objects")
+    create_relation(task_1, task_2)
     task_1.ScheduleStart = "2022-07-22T00:00:00"
     task_1.ScheduleFinish = "2022-07-25T00:00:00"
     task_2.ScheduleStart = "2022-07-28T00:00:00"
     task_2.ScheduleFinish = "2022-08-01T00:00:00"
-    create_relation(task_1, task_2)
     FreeCAD.ActiveDocument.recompute()
     print("Objects Ready")
     
