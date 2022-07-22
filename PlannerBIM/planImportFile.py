@@ -22,6 +22,7 @@
 # *   USA                                                                   *
 # *                                                                         *
 # ***************************************************************************/
+from xml.etree import ElementTree as ET
 
 import FreeCAD
 import PySide
@@ -33,50 +34,113 @@ from planEdge import makeEdge
 from planSchedule import PlanSchedule, ViewProviderSchedule
 from planTask import planTask, ViewProviderTask
 from planTaskTitle import PlanTaskTitle, ViewProviderTaskTitle
+from xmlItem import XmlItem
 
 
 def import_xml_file() -> None:
     """To import a XML File from ProjectLibre to autogenerate the objects."""
     FreeCAD.newDocument("schedule")
-    # if not FreeCAD.ActiveDocument:
-    #     return FreeCAD.Console.PrintError("No active document.")
 
     path = FreeCAD.ConfigGet("UserAppData")
-    file_name = ""
-    file_name, _ = PySide.QtGui.QFileDialog. \
+    filename = ""
+    filename, _ = PySide.QtGui.QFileDialog. \
         getOpenFileName(None,"Import XML File",path,"XML Files (*.xml)")
-    print(file_name)
-    print("Creating Objects")
-    
-    schedule_obj = create_schedule()
-    title_obj = create_task_title()
-    task_1 = create_task()
-    task_2 = create_task()
-    print("Schedule Created")
-    
-    print("Relating Objects")
-    title_obj.adjustRelativeLinks(schedule_obj)
-    schedule_obj.addObject(title_obj)
-    task_1.adjustRelativeLinks(title_obj)
-    title_obj.addObject(task_1)
-    task_2.adjustRelativeLinks(title_obj)
-    title_obj.addObject(task_2)
-    FreeCAD.ActiveDocument.recompute()
-    print("Objects related")
+    print(filename)
 
-    print("Customizing Data for objects")
-    create_relation(task_1, task_2)
-    task_1.ScheduleStart = "2022-07-22T00:00:00"
-    task_1.ScheduleFinish = "2022-07-25T00:00:00"
-    task_2.ScheduleStart = "2022-07-28T00:00:00"
-    task_2.ScheduleFinish = "2022-08-01T00:00:00"
-    FreeCAD.ActiveDocument.recompute()
-    print("Objects Ready")
+    print("Reading file...")
+    items_list = read_xml_file(filename)
+    print("File read, proceeding to objects creation...")
+    try:
+        create_3d_objects(items_list)
+        print("Successfully created all objects")
+    except Exception as err:
+        print("Error:", err)
     
 
+def read_xml_file(filename: str) -> list:
+    xml_file = ET.parse(filename)
+    root_element = xml_file.getroot()
+    prefix = "{http://schemas.microsoft.com/project}"
+    items_list = [] #list of items in "Tasks" tag parsed to XmlItem
 
-def create_schedule():
-    obj = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Schedule")
+    # Getting Tasks tag
+    tasks_list = root_element.find(prefix+"Tasks")
+
+    # Generating list of XmlItem's
+    for task in tasks_list:
+        task_uid = task.find(prefix+"UID").text
+        task_name = task.find(prefix+"Name").text
+        task_summary = task.find(prefix+"Summary").text
+        task_start = task.find(prefix+"Start").text
+        task_finish = task.find(prefix+"Finish").text
+        task_outline = task.find(prefix+"OutlineNumber").text
+        task_predecessor_link = task.find(prefix+"PredecessorLink") # Used to check if there is a predecessor
+
+        if task_predecessor_link:
+            task_predecessor_id = task_predecessor_link \
+                .find(prefix+"PredecessorUID").text
+        else:
+            task_predecessor_id = None
+        
+        xml_item = XmlItem(item_id=task_uid,
+                           name=task_name,
+                           start_time=task_start,
+                           finish_time=task_finish,
+                           summary=task_summary,
+                           outline_number=task_outline,
+                           predecessor_id=task_predecessor_id)
+        items_list.append(xml_item)
+    
+    return items_list
+
+
+def create_3d_objects(items_list: list) -> None:
+    """create_3d_objects Create all 3D objects from items extracted from XML.
+
+    As the items came in order from file 
+    Schedule -> Title 1 -> Task 1 -> Task 2 -> Title 2 -> Task 3 -> Task 4...
+
+    We can be based on this order to create the tree in Freecad.
+
+    Args:
+        items_list (list): _description_
+    """
+    # NOTE:This dict will hold 3d task objects created to make the relations between tasks
+    task_obj_dict = dict()
+    # NOTE: This will hold 3d Schedule objects, will be erased whenever there is a new schedule
+    schedule_obj = None
+    # NOTE: This will hold 3d Title objects, will be erased whenever there is a new title
+    title_obj = None 
+
+    for item in items_list:
+        if item.item_type == "SCHEDULE":
+            schedule_obj = create_schedule(item.name)
+            FreeCAD.ActiveDocument.recompute() # Always recompute after object is added
+        elif item.item_type == "TITLE":
+            title_obj = create_task_title(item.name)
+            title_obj.adjustRelativeLinks(schedule_obj)
+            schedule_obj.addObject(title_obj)
+            FreeCAD.ActiveDocument.recompute()
+        else: # It is a type TASK
+            task_obj = create_task(item.name)
+            task_obj.adjustRelativeLinks(title_obj)
+            title_obj.addObject(task_obj)
+            FreeCAD.ActiveDocument.recompute()
+            task_obj_dict[item.item_id] = task_obj
+            # Must set relation before dates
+            if item.predecessor_id:
+                create_relation(
+                    predecessor_obj=task_obj_dict[item.predecessor_id],
+                    successor_obj=task_obj)
+                FreeCAD.ActiveDocument.recompute()
+            # Setting dates
+            task_obj.ScheduleStart = item.start_time
+            task_obj.ScheduleFinish = item.finish_time
+            FreeCAD.ActiveDocument.recompute()            
+
+
+def create_schedule(name):
+    obj = FreeCAD.ActiveDocument.addObject("App::FeaturePython", name)
     PlanSchedule(obj)
 
     if FreeCAD.GuiUp:
@@ -86,8 +150,8 @@ def create_schedule():
     return obj
 
 
-def create_task_title():
-    obj = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "task-title")
+def create_task_title(name):
+    obj = FreeCAD.ActiveDocument.addObject("App::FeaturePython", name)
     PlanTaskTitle(obj)
 
     if FreeCAD.GuiUp:
@@ -97,8 +161,8 @@ def create_task_title():
     return obj
 
 
-def create_task():
-    obj = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Task")
+def create_task(name):
+    obj = FreeCAD.ActiveDocument.addObject("App::FeaturePython", name)
     planTask(obj)
 
     if FreeCAD.GuiUp:
