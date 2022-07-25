@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # ***************************************************************************
-# *   Copyright (c) 2020 Walmir Paiva eng.walmir@gmail.com                  *   
+# *   Copyright (c) 2022 Henrique Reis https://www.linkedin.com/in/pedrohrl/*
+# *   and Gustavo Reis https://github.com/GutoReis                          *
 # *                                                                         *
 # *   This file is part of the FreeCAD development system.                  *
 # *                                                                         *
@@ -25,7 +26,7 @@
 
 import FreeCAD
 import FreeCADGui
-from utils import path
+from planner_utils import path
 import planTask, planSchedule, planTaskTitle, \
        planCriticalPath, planSimulation, planImportFile
 

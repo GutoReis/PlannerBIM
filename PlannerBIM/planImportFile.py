@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # ***************************************************************************
-# *   Copyright (c) 2020 Walmir Paiva eng.walmir@gmail.com                  *   
+# *   Copyright (c) 2022 Henrique Reis https://www.linkedin.com/in/pedrohrl/*
+# *   and Gustavo Reis https://github.com/GutoReis                          *
 # *                                                                         *
 # *   This file is part of the FreeCAD development system.                  *
 # *                                                                         *
@@ -38,7 +39,8 @@ from xmlItem import XmlItem
 
 
 def import_xml_file() -> None:
-    """To import a XML File from ProjectLibre to autogenerate the objects."""
+    """import_xml_file To import a XML File from ProjectLibre to autogenerate the objects
+    """
     FreeCAD.newDocument("schedule")
 
     path = FreeCAD.ConfigGet("UserAppData")
@@ -58,6 +60,14 @@ def import_xml_file() -> None:
     
 
 def read_xml_file(filename: str) -> list:
+    """read_xml_file Read a XML file and extract "Takss" informations.
+
+    Args:
+        filename (str): Name of XML file to read.
+
+    Returns:
+        list: List of elements from "Tasks" tag
+    """
     xml_file = ET.parse(filename)
     root_element = xml_file.getroot()
     prefix = "{http://schemas.microsoft.com/project}"
@@ -103,7 +113,7 @@ def create_3d_objects(items_list: list) -> None:
     We can be based on this order to create the tree in Freecad.
 
     Args:
-        items_list (list): _description_
+        items_list (list): List of items from XmlItem class.
     """
     # NOTE:This dict will hold 3d task objects created to make the relations between tasks
     task_obj_dict = dict()
@@ -139,7 +149,15 @@ def create_3d_objects(items_list: list) -> None:
             FreeCAD.ActiveDocument.recompute()            
 
 
-def create_schedule(name):
+def create_schedule(name: str):
+    """create_schedule Create a schedule type object
+
+    Args:
+        name (str): Name of the object
+
+    Returns:
+        FeaturePython: Instantiated 3d object for FreeCAD
+    """
     obj = FreeCAD.ActiveDocument.addObject("App::FeaturePython", name)
     PlanSchedule(obj)
 
@@ -151,6 +169,14 @@ def create_schedule(name):
 
 
 def create_task_title(name):
+    """create_task_title Create a Task Title type object
+
+    Args:
+        name (str): Name of the object
+
+    Returns:
+        FeaturePython: Instantiated 3d object for FreeCAD
+    """
     obj = FreeCAD.ActiveDocument.addObject("App::FeaturePython", name)
     PlanTaskTitle(obj)
 
@@ -161,7 +187,15 @@ def create_task_title(name):
     return obj
 
 
-def create_task(name):
+def create_task(name: str):
+    """create_task Create a Task type object
+
+    Args:
+        name (str): Name of the object
+
+    Returns:
+        FeaturePython: Instantiated 3d object for FreeCAD
+    """
     obj = FreeCAD.ActiveDocument.addObject("App::FeaturePython", name)
     planTask(obj)
 
@@ -173,6 +207,12 @@ def create_task(name):
 
 
 def create_relation(predecessor_obj, successor_obj):
+    """create_relation Create a relationship between two objects.
+
+    Args:
+        predecessor_obj (FeaturePython): The task that come before.
+        successor_obj (FeaturePython): The task that come after.
+    """
     item = predecessor_obj.Identification
     descr = predecessor_obj.LongDescription
     param_edge = []
