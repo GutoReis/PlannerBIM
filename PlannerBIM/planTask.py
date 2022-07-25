@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # ***************************************************************************
-# *   Copyright (c) 2020 Walmir Paiva eng.walmir@gmail.com                  *   
+# *   Copyright (c) 2022 Henrique Reis https://www.linkedin.com/in/pedrohrl/*
+# *   and Gustavo Reis https://github.com/GutoReis                          *
 # *                                                                         *
 # *   This file is part of the FreeCAD development system.                  *
 # *                                                                         *
@@ -23,14 +24,13 @@
 # *                                                                         *
 # ***************************************************************************/
 
-
 import FreeCAD
 import FreeCADGui
 from pivy import coin
 from PySide import QtCore
 from PySide.QtGui import QTableWidgetItem
 from planProcess import Process
-from utils import path, parseDate, parseIsoFormat, add2Date
+from planner_utils import path, parseDate, parseIsoFormat, add2Date
 
 
 def makeTask(name='Task'):
